@@ -23,6 +23,7 @@ async function run() {
     const service_collection = database.collection("services");
     const order_collection = database.collection("orders");
     const review_collection = database.collection("review");
+    const user_collection = database.collection("user");
 
     //get all services
     app.get("/service", async (req, res) => {
@@ -40,62 +41,97 @@ async function run() {
     });
 
     //post orders
-    app.post('/addOrders',async(req,res) => {
+    app.post("/addOrders", async (req, res) => {
       const newOrders = req.body;
       const result = await order_collection.insertOne(newOrders);
       res.json(result);
-      console.log(result);
-    })
+    });
     //add new product
-    app.post('/addProduct',async(req,res) => {
+    app.post("/addProduct", async (req, res) => {
       const newOrders = req.body;
       const result = await service_collection.insertOne(newOrders);
       res.json(result);
-    })
+    });
     //add review
-    app.post('/addReview',async(req,res) => {
+    app.post("/addReview", async (req, res) => {
       const review = req.body;
       const result = await review_collection.insertOne(review);
       res.json(result);
-      console.log(result);
-    })
+    });
+    //saved userInfo
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await user_collection.insertOne(user);
+      res.json(result);
+    });
+
+    app.put("/users", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const options = { upsert: true };
+      const updateDoc = { $set: user };
+      const result = await user_collection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.json(result);
+    });
+
+    app.put("/users/admin", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const updateDoc = { $set: { role: "admin" } };
+      const result = await user_collection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await user_collection.findOne(query);
+      let isAdmin = false;
+      if (user?.role === "admin") {
+        isAdmin = true;
+      }
+      res.json({ admin: isAdmin });
+    });
 
     //load specific data
-    app.get('/orders/:email',async(req, res) => {
+    app.get("/orders/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {email: email};
-      const cursor =  order_collection.find(query)
+      const query = { email: email };
+      const cursor = order_collection.find(query);
       const order = await cursor.toArray();
       res.send(order);
-    })
+    });
 
     //delete a data
-    app.delete('/delete/:id',async(req, res) =>{
+    app.delete("/delete/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: ObjectId(id)};
+      const query = { _id: ObjectId(id) };
       const result = await order_collection.deleteOne(query);
       res.json(result);
-    })
+    });
 
     //get all orders
-    app.get('/orders',async(req, res)=>{
+    app.get("/orders", async (req, res) => {
       const order = await order_collection.find({}).toArray();
-      res.json(order)
-    })
+      res.json(order);
+    });
 
     //confirm order
-    app.put('/confirm/:id',async(req, res)=>{
+    app.put("/confirm/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: ObjectId(id)}
+      const query = { _id: ObjectId(id) };
       const order = {
-        $set:{
-          status:"Shipped"
-        }
-      }
-      const result = await order_collection.updateOne(query,order)
-      res.json(result)
-    })
-
+        $set: {
+          status: "Shipped",
+        },
+      };
+      const result = await order_collection.updateOne(query, order);
+      res.json(result);
+    });
   } finally {
     // await client.close();
   }
