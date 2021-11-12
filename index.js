@@ -22,6 +22,7 @@ async function run() {
     const database = client.db("supper_bikes");
     const service_collection = database.collection("services");
     const order_collection = database.collection("orders");
+    const review_collection = database.collection("review");
 
     //get all services
     app.get("/service", async (req, res) => {
@@ -42,6 +43,19 @@ async function run() {
     app.post('/addOrders',async(req,res) => {
       const newOrders = req.body;
       const result = await order_collection.insertOne(newOrders);
+      res.json(result);
+      console.log(result);
+    })
+    //add new product
+    app.post('/addProduct',async(req,res) => {
+      const newOrders = req.body;
+      const result = await service_collection.insertOne(newOrders);
+      res.json(result);
+    })
+    //add review
+    app.post('/addReview',async(req,res) => {
+      const review = req.body;
+      const result = await review_collection.insertOne(review);
       res.json(result);
       console.log(result);
     })
