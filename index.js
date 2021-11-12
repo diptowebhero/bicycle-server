@@ -58,6 +58,12 @@ async function run() {
       const result = await review_collection.insertOne(review);
       res.json(result);
     });
+    //get all review
+    app.get("/reviews", async (req, res) => {
+      const cursor = review_collection.find({});
+      const review = await cursor.toArray();
+      res.send(review);
+    });
     //saved userInfo
     app.post("/users", async (req, res) => {
       const user = req.body;
